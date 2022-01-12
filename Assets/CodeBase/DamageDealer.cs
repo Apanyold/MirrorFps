@@ -7,9 +7,9 @@ public class DamageDealer : NetworkBehaviour
 {
     public int Damange = 10;
 
-    [Command]
-    public void CmndDealDamage(DamagerReciver damagerReciver)
+    [Server]
+    public void ServerDealDamage(DamagerReciver damagerReciver, NetworkConnectionToClient sender = null)
     {
-        damagerReciver.CmndReciveDamage(Damange);
+        damagerReciver.ServerReciveDamage(Damange, sender);
     }
 }

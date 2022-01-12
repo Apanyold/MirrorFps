@@ -1,72 +1,104 @@
 ﻿using UnityEngine;
 using Mirror;
-using System.Collections;
-using CodeBase.Player;
+using CodeBase.Client;
+using CodeBase.Infrastructure;
 
-public class PlayerController : NetworkBehaviour
+namespace CodeBase.Player
 {
-    public CharacterController characterController;
-    public float MovementSpeed = 10;
-
-    [HideInInspector]
-    public ParticleSystem flash;
-    public ParticleSystem impact;
-
-    public Transform gunTransform;
-    public DamageDealer damageDealer;
-
-    public GameObject playerCamera;
-
-    [TargetRpc]
-    public void Init()
+    public class PlayerController : NetworkBehaviour
     {
-        playerCamera.AddComponent<Camera>();
-        var clientController = gameObject.AddComponent<ClientPlayerController>();
-        clientController.Init(this);
-    }
+        public CharacterController characterController;
+        public float MovementSpeed = 10;
 
-    public void Move(Vector3 movementVector)
-    {
-        characterController.Move(MovementSpeed * movementVector * Time.deltaTime);
-    }
+        [HideInInspector]
+        public ParticleSystem flash;
+        public ParticleSystem impact;
 
-    public void Shoot()
-    {
-        flash.Play();
+        public Transform gunTransform;
+        public DamageDealer damageDealer;
+        public DamagerReciver damagerReciver;
 
-        RaycastHit hit;
+        public GameObject playerCamera;
 
-        if (Physics.Raycast(gunTransform.transform.position, gunTransform.transform.forward, out hit))
+        [TargetRpc]
+        public void TargetInit()
         {
-            if (hit.transform.TryGetComponent(out DamagerReciver damagerReciver))
-                damageDealer.CmndDealDamage(damagerReciver);
+            playerCamera.AddComponent<Camera>();
 
-            CmdSpawnImpact(hit.point);
+            var clientController = gameObject.AddComponent<ClientPlayerController>();
+            damagerReciver = gameObject.GetComponent<DamagerReciver>();
+
+            damagerReciver.onDied += OnPlayerDied;
+
+            clientController.Init(this);
         }
-    }
 
-    public void RotateGun(Quaternion rotation)
-    {
-        gunTransform.localRotation = rotation;
-    }
+        [Server]
+        public void ServerInit()
+        {
 
-    public void RotatePlayer(Vector3 rotation)
-    {
-        transform.Rotate(rotation);
-    }
+        }
 
-    [Command]
-    private void CmdSpawnImpact(Vector3 postiion)
-    {
-        var impactGo = Instantiate(impact, postiion, new Quaternion());
-        NetworkServer.Spawn(impactGo.gameObject);
+        public void OnPlayerDied()
+        {
+            damagerReciver.CmndRevive();
+            transform.position = Game.GetStartPosition().position;
+        }
 
-        StartCoroutine(DestroyWithDelay(impactGo.gameObject, 0.2f));
-    }
+        public void Move(Vector3 movementVector)
+        {
+            characterController.Move(MovementSpeed * movementVector * Time.deltaTime);
+        }
 
-    private IEnumerator DestroyWithDelay(GameObject gameObject, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        NetworkServer.Destroy(gameObject);
+        [Client]
+        public void Shoot()
+        {
+            flash.Play();
+            CmndPlayFlash();
+            CmndShoot();
+        }
+
+        [Command]
+        public void CmndShoot(NetworkConnectionToClient sender = null)
+        {
+            RaycastHit hit;
+
+            if (Physics.Raycast(gunTransform.transform.position, gunTransform.transform.forward, out hit))
+            {
+                if (hit.transform.TryGetComponent(out DamagerReciver damagerReciver))
+                    damageDealer.ServerDealDamage(damagerReciver, sender);
+
+                ClientSpawnImpact(hit.point);
+            }
+        }
+
+        [Command]
+        public void CmndPlayFlash()
+        {
+            ClientPlayFlash();
+        }
+
+        [ClientRpc]
+        public void ClientPlayFlash()
+        {
+            flash.Play();
+        }
+
+        public void RotateGun(Quaternion rotation)
+        {
+            playerCamera.transform.localRotation = rotation;
+        }
+
+        public void RotatePlayer(Vector3 rotation)
+        {
+            transform.Rotate(rotation);
+        }
+
+        [ClientRpc]
+        private void ClientSpawnImpact(Vector3 postiion)
+        {
+            var impactGo = Instantiate(impact, postiion, new Quaternion());
+            Destroy(impactGo, 0.2f);
+        }
     }
 }

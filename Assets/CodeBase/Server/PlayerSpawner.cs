@@ -13,7 +13,7 @@ namespace CodeBase.Server
         }
 
         [Command]
-        public void CmdSpawnPlayer()
+        public void CmdSpawnPlayer(NetworkConnectionToClient sender = null)
         {
             networkManager.OnServerAddPlayer(NetworkClient.connection);
         }

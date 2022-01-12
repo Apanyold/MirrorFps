@@ -91,7 +91,7 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2939444941408392623}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
@@ -335,7 +335,7 @@ MonoBehaviour:
   showGizmos: 0
   showOverlay: 0
   overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
-  target: {fileID: 8431911986050142539}
+  target: {fileID: 5146292886952451470}
 --- !u!114 &8216824203374156864
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -388,6 +388,7 @@ MonoBehaviour:
   impact: {fileID: 4830139925681236996, guid: d3b17492cbb5e804b89db6a6b6cb0a47, type: 3}
   gunTransform: {fileID: 8431911986050142539}
   damageDealer: {fileID: 8216824203374156864}
+  damagerReciver: {fileID: 0}
   playerCamera: {fileID: 8320274927290221592}
 --- !u!54 &7348441799273780764
 Rigidbody:

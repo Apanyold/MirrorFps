@@ -2,9 +2,9 @@ using UnityEngine;
 using Mirror;
 using CodeBase.Services.Input;
 using CodeBase.Infrastructure;
-using CodeBase.CameraLogic;
+using CodeBase.Player;
 
-namespace CodeBase.Player
+namespace CodeBase.Client
 {
     public class ClientPlayerController : NetworkBehaviour
     {
@@ -28,7 +28,7 @@ namespace CodeBase.Player
 
         private void Start()
         {
-            _inputService = Game._inputService;
+            _inputService = Game.inputService;
         }
 
         void Update()
@@ -72,6 +72,11 @@ namespace CodeBase.Player
             }
             else
                 Cursor.lockState = CursorLockMode.None;
+        }
+
+        private void OnDestroy()
+        {
+            Cursor.lockState = CursorLockMode.None;
         }
 
         private void Fire()
